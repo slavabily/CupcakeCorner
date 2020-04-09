@@ -52,6 +52,14 @@ class Order: ObservableObject, Codable {
         if name.isEmpty || streetAddress.isEmpty || city.isEmpty || zip.isEmpty {
             return false
         }
+        
+        // validation of white spaces absense
+        if (" "..."                                           ").contains(name) ||
+            (" "..."                                          ").contains(streetAddress) ||
+            (" "..."                                          ").contains(city) ||
+            (" "..."                                          ").contains(zip) {
+            return false
+        }
         return true
     }
     
