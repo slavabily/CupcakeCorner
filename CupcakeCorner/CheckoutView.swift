@@ -14,6 +14,7 @@ struct CheckoutView: View {
     
     @State private var confirmationMessage = ""
     @State private var showingConfirmation = false
+    @State private var showingNoResponse = false
     
     var body: some View {
         GeometryReader { (geo) in
@@ -32,12 +33,18 @@ struct CheckoutView: View {
                         self.placeOrder()
                     }
                     .padding()
-                 }
+                    .alert(isPresented: self.$showingNoResponse) { () -> Alert in
+                        Alert(title: Text("No connection to the server!"), message: Text("Please, check the internet connection."), dismissButton: .default(Text("OK")))
+                    }
+                }
             }
         }
         .navigationBarTitle("Check out", displayMode: .inline)
-        .alert(isPresented: $showingConfirmation) { () -> Alert in
-            Alert(title: Text("Thank you!"), message: Text(confirmationMessage), dismissButton: .default(Text("OK")))
+        .alert(isPresented: $showingConfirmation) {
+            if self.showingNoResponse {
+                return Alert(title: Text("No connection to the server!"), message: Text("Please, check the internet connection."), dismissButton: .default(Text("OK")))
+            }
+            return Alert(title: Text("Thank you!"), message: Text(confirmationMessage), dismissButton: .default(Text("OK")))
         }
     }
     
@@ -55,6 +62,8 @@ struct CheckoutView: View {
         URLSession.shared.dataTask(with: request) { (data, response, error) in
             // handle the result here
             guard let data = data else {
+                self.showingNoResponse = true
+                self.showingConfirmation = true
                 print("No data in response: \(error?.localizedDescription ?? "Unknown error").")
                 return
             }
