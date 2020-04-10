@@ -25,17 +25,14 @@ struct CheckoutView: View {
                         .scaledToFit()
                         .frame(width: geo.size.width)
                     
-                    Text("Your total is $\(self.order.cost, specifier: "%.2f")")
+                    Text("Your total is $\(self.order.item.cost, specifier: "%.2f")")
                         .font(.title)
                     
                     Button("Place order") {
-                        // place the order
+//                         place the order
                         self.placeOrder()
                     }
                     .padding()
-                    .alert(isPresented: self.$showingNoResponse) { () -> Alert in
-                        Alert(title: Text("No connection to the server!"), message: Text("Please, check the internet connection."), dismissButton: .default(Text("OK")))
-                    }
                 }
             }
         }
@@ -49,8 +46,8 @@ struct CheckoutView: View {
     }
     
     func placeOrder() {
-        guard let encoded = try? JSONEncoder().encode(order) else {
-            print("Failed to encode order")
+        guard let encoded = try? JSONEncoder().encode(order.item) else {
+            print("Failed to encode order item")
             return
         }
         let url = URL(string: "https://reqres.in/api/cupcakes")!
@@ -58,7 +55,7 @@ struct CheckoutView: View {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpMethod = "POST"
         request.httpBody = encoded
-        
+
         URLSession.shared.dataTask(with: request) { (data, response, error) in
             // handle the result here
             guard let data = data else {
@@ -67,7 +64,7 @@ struct CheckoutView: View {
                 print("No data in response: \(error?.localizedDescription ?? "Unknown error").")
                 return
             }
-            if let decodedOrder = try? JSONDecoder().decode(Order.self, from: data) {
+            if let decodedOrder = try? JSONDecoder().decode(Order.Details.self, from: data) {
                 self.confirmationMessage = "Your order for \(decodedOrder.quantity)x \(Order.types[decodedOrder.type].lowercased()) cupcakes is on its way!"
                 self.showingConfirmation = true
             } else {
